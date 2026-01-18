@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - Amefa Order Portal{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem;">
+    <!-- Navigation -->
+    <div style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="color: #003366; margin: 0;">My Orders</h1>
+            <div>
+                <a href="{{ url_for('customer_login') }}" style="margin-right: 1rem; color: #005b9f;">Login</a>
+                <a href="{{ url_for('products') }}" style="margin-right: 1rem; color: #005b9f;">Products</a>
+                <a href="{{ url_for('order_view') }}" style="margin-right: 1rem; color: #005b9f; font-weight: bold;">Orders</a>
+                <a href="{{ url_for('report_view') }}" style="margin-right: 1rem; color: #005b9f;">Reports</a>
+                <a href="{{ url_for('contact') }}" style="color: #005b9f;">Contact</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders List -->
+    <div style="background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #003366; color: white;">
+                <tr>
+                    <th style="padding: 1rem; text-align: left;">Order #</th>
+                    <th style="padding: 1rem; text-align: left;">Date</th>
+                    <th style="padding: 1rem; text-align: left;">Total</th>
+                    <th style="padding: 1rem; text-align: left;">Status</th>
+                    <th style="padding: 1rem; text-align: left;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(3) %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 1rem;">AME-2024-00{{ 100+i }}</td>
+                    <td style="padding: 1rem;">2024-01-{{ 15+i }}</td>
+                    <td style="padding: 1rem;">€{{ (i+1)*150 }}</td>
+                    <td style="padding: 1rem;">
+                        <span style="padding: 0.25rem 0.75rem; border-radius: 20px; background: #d4edda; color: #155724;">
+                            {% if i == 0 %}Processing{% elif i == 1 %}Shipped{% else %}Delivered{% endif %}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <button style="padding: 0.25rem 0.75rem; background: #003366; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            View
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

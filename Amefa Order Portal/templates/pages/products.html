@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Products - Amefa Order Portal{% endblock %}
+
+{% block content %}
+    <!-- Navigation -->
+    <div class="navbar">
+        <h1>Amefa Products</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('customer_login') }}">Login</a>
+            <a href="{{ url_for('products') }}" class="active">Products</a>
+            <a href="{{ url_for('order_view') }}">Orders</a>
+            <a href="{{ url_for('report_view') }}">Reports</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
+        </div>
+    </div>
+    
+    <!-- Products Grid -->
+    <div class="products-grid">
+        {% for i in range(6) %}
+        <div class="product-card">
+            <div class="product-image">
+                <div style="font-size: 48px;">🍴</div>
+            </div>
+            <div class="product-content">
+                <h3>Product {{ i+1 }}</h3>
+                <p>Premium quality cutlery set for professional use. Made in Germany with stainless steel.</p>
+                <div class="price">€{{ (i+1)*50 }}</div>
+                <div class="flex-between">
+                    <span>In stock</span>
+                    <button>Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}
