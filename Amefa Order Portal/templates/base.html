@@ -1,12 +1,42 @@
 <!DOCTYPE html>
-<!-- In customer_login.html -->
-{% extends "base.html" %}
-
-{% block content %}
-<h1>Customer Login</h1>
-<form>
-    <input type="email" placeholder="Email">
-    <input type="password" placeholder="Password">
-    <button type="submit">Login</button>
-</form>
-{% endblock %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Amefa Order Portal{% endblock %}</title>
+    
+    <!-- LINK TO YOUR CSS - THIS IS WHAT YOU NEED TO ADD -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='application.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Include navigation if you have it -->
+    {% if request.endpoint != 'customer_login' and request.endpoint != 'home' %}
+        {% include 'nav.html' %}
+    {% endif %}
+    
+    <main class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Include footer -->
+    {% if request.endpoint != 'customer_login' and request.endpoint != 'home' %}
+        {% include 'footer.html' %}
+    {% endif %}
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='application.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
