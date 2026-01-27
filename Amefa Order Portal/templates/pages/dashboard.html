@@ -4,115 +4,157 @@
 
 {% block content %}
 <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-white">Welcome, {{ user.name }}!</h1>
-        <p class="text-gray-400 mt-2">Here's your order portal dashboard</p>
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Welcome, {{ username }}!</h1>
+    <p class="text-gray-400 mt-2">Customer Dashboard (demo data)</p>
+  </div>
+
+  <!-- Stats Cards (demo) -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="card p-6 rounded-xl bg-white/5 border border-white/10">
+      <div class="flex items-center">
+        <div class="p-3 rounded-lg bg-blue-500/20">
+          <i class="fas fa-shopping-cart text-blue-400 text-xl"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-gray-400 text-sm">Total Orders</p>
+          <p class="text-2xl font-bold text-white">12</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="card p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-amefa-blue/20">
-                    <i class="fas fa-shopping-cart text-amefa-blue text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-gray-400 text-sm">Total Orders</p>
-                    <p class="text-2xl font-bold text-white">{{ stats.total_orders }}</p>
-                </div>
-            </div>
+    <div class="card p-6 rounded-xl bg-white/5 border border-white/10">
+      <div class="flex items-center">
+        <div class="p-3 rounded-lg bg-yellow-500/20">
+          <i class="fas fa-clock text-yellow-400 text-xl"></i>
         </div>
-
-        <div class="card p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-yellow-500/20">
-                    <i class="fas fa-clock text-yellow-500 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-gray-400 text-sm">Pending Orders</p>
-                    <p class="text-2xl font-bold text-white">{{ stats.pending_orders }}</p>
-                </div>
-            </div>
+        <div class="ml-4">
+          <p class="text-gray-400 text-sm">Pending Orders</p>
+          <p class="text-2xl font-bold text-white">2</p>
         </div>
-
-        <div class="card p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-green-500/20">
-                    <i class="fas fa-euro-sign text-green-500 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-gray-400 text-sm">Total Spent</p>
-                    <p class="text-2xl font-bold text-white">€{{ "%.2f"|format(stats.total_spent) }}</p>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <div class="card p-6 rounded-xl bg-white/5 border border-white/10">
+      <div class="flex items-center">
+        <div class="p-3 rounded-lg bg-green-500/20">
+          <i class="fas fa-euro-sign text-green-400 text-xl"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-gray-400 text-sm">Total Spent</p>
+          <p class="text-2xl font-bold text-white">€ 8,450.00</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions + Recent Orders -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="card p-6">
-            <h2 class="text-xl font-bold text-white mb-4">Quick Actions</h2>
-            <div class="space-y-3">
-                <a href="{{ url_for('products_page') }}" 
-                   class="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors">
-                    <i class="fas fa-boxes text-amefa-blue mr-3"></i>
-                    <span class="text-white">Browse Products</span>
-                    <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
-                </a>
-                <a href="{{ url_for('orders_page') }}" 
-                   class="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors">
-                    <i class="fas fa-clipboard-list text-amefa-blue mr-3"></i>
-                    <span class="text-white">View Orders</span>
-                    <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
-                </a>
-                <a href="{{ url_for('support') }}" 
-                   class="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors">
-                    <i class="fas fa-headset text-amefa-blue mr-3"></i>
-                    <span class="text-white">Get Support</span>
-                    <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
-                </a>
-            </div>
-        </div>
+    <div class="card p-6 rounded-xl bg-white/5 border border-white/10">
+      <h2 class="text-xl font-bold text-white mb-4">Quick Actions</h2>
 
-        <div class="card p-6">
-            <h2 class="text-xl font-bold text-white mb-4">Recent Orders</h2>
-            {% if stats.recent_orders %}
-            <div class="space-y-3">
-                {% for order in stats.recent_orders %}
-                <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                    <div>
-                        <p class="font-medium text-white">Order #{{ order.id }}</p>
-                        <p class="text-sm text-gray-400">{{ order.date }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-medium text-white">€{{ "%.2f"|format(order.total) }}</p>
-                        <span class="text-xs px-2 py-1 rounded-full {% if order.status == 'Delivered' %}bg-green-500/20 text-green-400{% elif order.status == 'Processing' %}bg-blue-500/20 text-blue-400{% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
-                            {{ order.status }}
-                        </span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="text-gray-400 text-center py-4">No orders yet</p>
-            {% endif %}
-        </div>
+      <div class="space-y-3">
+        <a href="{{ url_for('products') }}"
+           class="flex items-center p-3 rounded-lg hover:bg-white/10 transition-colors">
+          <i class="fas fa-boxes text-blue-400 mr-3"></i>
+          <span class="text-white">Browse Products</span>
+          <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
+        </a>
+
+        <a href="{{ url_for('orders') }}"
+           class="flex items-center p-3 rounded-lg hover:bg-white/10 transition-colors">
+          <i class="fas fa-clipboard-list text-blue-400 mr-3"></i>
+          <span class="text-white">View Orders</span>
+          <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
+        </a>
+
+        <a href="{{ url_for('support') }}"
+           class="flex items-center p-3 rounded-lg hover:bg-white/10 transition-colors">
+          <i class="fas fa-headset text-blue-400 mr-3"></i>
+          <span class="text-white">Get Support</span>
+          <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
+        </a>
+
+        <a href="{{ url_for('logout') }}"
+           class="flex items-center p-3 rounded-lg hover:bg-white/10 transition-colors">
+          <i class="fas fa-right-from-bracket text-blue-400 mr-3"></i>
+          <span class="text-white">Logout</span>
+          <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
+        </a>
+      </div>
     </div>
 
-    <!-- Demo Info -->
-    <div class="card p-6 bg-blue-900/20 border border-blue-700/30">
-        <div class="flex items-start">
-            <i class="fas fa-info-circle text-blue-400 text-xl mt-1 mr-3"></i>
-            <div>
-                <h3 class="text-lg font-semibold text-white mb-2">Demo Portal</h3>
-                <p class="text-gray-300 mb-2">This is a demonstration of the Amefa Order Portal. The data shown is for testing purposes.</p>
-                <div class="text-sm text-gray-400">
-                    <p><strong>Current User:</strong> {{ user.name }} ({{ user.email }})</p>
-                    <p><strong>Role:</strong> {{ user.role|title }}</p>
-                    <p class="mt-2">Use the navigation menu to explore different sections.</p>
-                </div>
-            </div>
-        </div>
+    <!-- Recent Orders (demo table) -->
+    <div class="card p-6 rounded-xl bg-white/5 border border-white/10">
+      <h2 class="text-xl font-bold text-white mb-4">Recent Orders</h2>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-gray-400 border-b border-white/10">
+              <th class="text-left py-2">Order</th>
+              <th class="text-left py-2">Date</th>
+              <th class="text-left py-2">Status</th>
+              <th class="text-right py-2">Total</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-200">
+            <tr class="border-b border-white/5">
+              <td class="py-2">#A-10291</td>
+              <td class="py-2">2026-01-22</td>
+              <td class="py-2">
+                <span class="px-2 py-1 rounded-full bg-blue-500/20 text-blue-300">Processing</span>
+              </td>
+              <td class="py-2 text-right">€ 1,240.00</td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-2">#A-10275</td>
+              <td class="py-2">2026-01-18</td>
+              <td class="py-2">
+                <span class="px-2 py-1 rounded-full bg-green-500/20 text-green-300">Delivered</span>
+              </td>
+              <td class="py-2 text-right">€ 980.00</td>
+            </tr>
+            <tr>
+              <td class="py-2">#A-10263</td>
+              <td class="py-2">2026-01-15</td>
+              <td class="py-2">
+                <span class="px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-300">Pending</span>
+              </td>
+              <td class="py-2 text-right">€ 420.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4">
+        <a href="{{ url_for('orders') }}" class="text-blue-300 hover:text-blue-200 text-sm">
+          View all orders →
+        </a>
+      </div>
     </div>
+
+  </div>
+
+  <!-- Demo Note -->
+  <div class="card p-6 rounded-xl bg-blue-900/20 border border-blue-700/30">
+    <div class="flex items-start">
+      <i class="fas fa-info-circle text-blue-400 text-xl mt-1 mr-3"></i>
+      <div>
+        <h3 class="text-lg font-semibold text-white mb-2">Demo Notice</h3>
+        <p class="text-gray-300">
+          This dashboard shows demo data to demonstrate the user flow and the template structure (Jinja + Flask).
+        </p>
+        <p class="text-gray-400 text-sm mt-2">
+          Use the navigation to visit Products, Orders, Reports, and Support.
+        </p>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
