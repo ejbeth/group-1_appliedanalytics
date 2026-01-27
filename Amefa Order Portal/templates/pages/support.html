@@ -85,14 +85,15 @@
         </div>
 
         <div class="mt-6 flex flex-wrap gap-2">
-          <a href="mailto:support@amefa.de?subject=Amefa%20Portal%20Support%20Request"
-             class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm text-white">
+          <button type="button"
+                  onclick="document.getElementById('supportForm').scrollIntoView({ behavior: 'smooth', block: 'start' });"
+                  class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm text-white">
             <i class="fas fa-paper-plane mr-2"></i>
-            Email Support
-          </a>
+            Send Message
+          </button>
 
           <button type="button"
-                  onclick="alert('Demo only')"
+                  onclick="showModal('Ticket Creation', 'Ticket creation is not connected in this demo. Please use the message form.', 'info')"
                   class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
             <i class="fas fa-ticket mr-2 text-gray-700"></i>
             Create Ticket
@@ -170,7 +171,7 @@
             <div>
               <p class="font-semibold text-gray-900">Demo Notice</p>
               <p class="text-gray-700 text-sm mt-1">
-                This support page demonstrates a professional layout. No real ticket system is connected.
+                This page sends messages via Formspree. Ticket IDs are generated locally (demo tracking).
               </p>
             </div>
           </div>
@@ -180,12 +181,12 @@
     </div>
 
     <!-- Support form -->
-    <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+    <div id="supportForm" class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
       <div class="flex items-start justify-between">
         <div>
           <h2 class="text-xl font-bold text-gray-900">Send a Message</h2>
           <p class="text-gray-600 mt-1">
-            Describe your issue and our team will assist you (demo only).
+            Describe your issue and our team will assist you.
           </p>
         </div>
         <div class="p-3 rounded-lg bg-purple-50">
@@ -193,13 +194,29 @@
         </div>
       </div>
 
-      <form class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4"
-            onsubmit="event.preventDefault(); alert('Demo only');">
+      <!-- IMPORTANT: action is your Formspree endpoint -->
+      <form id="contactForm"
+            class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4"
+            action="https://formspree.io/f/xjgwllkw"
+            method="POST">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
+          <input
+            name="email"
+            type="email"
+            required
+            class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            placeholder="you@company.com"
+          />
+        </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
           <input
+            name="subject"
             type="text"
+            required
             class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="e.g. Login issue / Order question"
           />
@@ -208,6 +225,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
           <select
+            name="category"
             class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200">
             <option>General</option>
             <option>Login</option>
@@ -218,10 +236,22 @@
           </select>
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Order Number (optional)</label>
+          <input
+            name="order_number"
+            type="text"
+            class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            placeholder="e.g. A-10291"
+          />
+        </div>
+
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
           <textarea
-            rows="5"
+            name="message"
+            rows="6"
+            required
             class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Describe the issue clearly. Include order number if relevant."
           ></textarea>
@@ -230,15 +260,18 @@
           </p>
         </div>
 
+        <!-- Hidden ticket id (sent to Formspree) -->
+        <input type="hidden" name="ticket_id" id="ticketIdField" value="">
+
         <div class="md:col-span-2 flex flex-wrap gap-2">
-          <button type="submit"
+          <button id="submitBtn" type="submit"
                   class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm text-white">
             <i class="fas fa-paper-plane mr-2"></i>
             Submit
           </button>
 
           <button type="button"
-                  onclick="alert('Demo only')"
+                  id="resetBtn"
                   class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
             <i class="fas fa-rotate-left mr-2 text-gray-700"></i>
             Reset
@@ -250,4 +283,149 @@
 
   </div>
 </div>
+
+<!-- Modal Overlay -->
+<div id="modalOverlay" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/40"></div>
+
+  <div class="relative mx-auto mt-24 w-[92%] max-w-lg">
+    <div class="rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+      <div class="px-6 py-5 flex items-start justify-between">
+        <div class="flex items-start gap-3">
+          <div id="modalIconWrap" class="mt-0.5 p-2 rounded-lg bg-blue-50">
+            <i id="modalIcon" class="fas fa-circle-info text-blue-600"></i>
+          </div>
+          <div>
+            <p id="modalTitle" class="text-lg font-semibold text-gray-900">Status</p>
+            <p id="modalBody" class="text-gray-700 text-sm mt-1">Message</p>
+            <p id="modalTicket" class="text-gray-900 text-sm mt-3 font-semibold hidden"></p>
+          </div>
+        </div>
+
+        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-700 px-2">
+          <i class="fas fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
+        <button type="button"
+                onclick="closeModal()"
+                class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-900">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Ticket ID: sequential per browser (demo) ---
+  function nextTicketId() {
+    const key = "amefa_ticket_counter";
+    const current = parseInt(localStorage.getItem(key) || "0", 10) + 1;
+    localStorage.setItem(key, String(current));
+    return "AME-" + String(current).padStart(6, "0");
+  }
+
+  function showModal(title, body, type, ticketId) {
+    const overlay = document.getElementById("modalOverlay");
+    const icon = document.getElementById("modalIcon");
+    const iconWrap = document.getElementById("modalIconWrap");
+    const mTitle = document.getElementById("modalTitle");
+    const mBody = document.getElementById("modalBody");
+    const mTicket = document.getElementById("modalTicket");
+
+    mTitle.textContent = title;
+    mBody.textContent = body;
+
+    mTicket.classList.add("hidden");
+    if (ticketId) {
+      mTicket.textContent = "Ticket ID: " + ticketId;
+      mTicket.classList.remove("hidden");
+    }
+
+    // reset
+    iconWrap.className = "mt-0.5 p-2 rounded-lg";
+    icon.className = "fas";
+
+    if (type === "success") {
+      iconWrap.classList.add("bg-green-50");
+      icon.classList.add("fa-circle-check", "text-green-700");
+    } else if (type === "error") {
+      iconWrap.classList.add("bg-red-50");
+      icon.classList.add("fa-triangle-exclamation", "text-red-700");
+    } else {
+      iconWrap.classList.add("bg-blue-50");
+      icon.classList.add("fa-circle-info", "text-blue-600");
+    }
+
+    overlay.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    document.getElementById("modalOverlay").classList.add("hidden");
+  }
+
+  // Close modal on ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  // Form: submit via fetch to avoid redirect to Formspree /thanks
+  const form = document.getElementById("contactForm");
+  const resetBtn = document.getElementById("resetBtn");
+  const submitBtn = document.getElementById("submitBtn");
+  const ticketField = document.getElementById("ticketIdField");
+
+  resetBtn.addEventListener("click", () => {
+    form.reset();
+    showModal("Form Reset", "The form fields were cleared.", "info");
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Generate ticket id and attach to form
+    const ticketId = nextTicketId();
+    ticketField.value = ticketId;
+
+    submitBtn.disabled = true;
+    submitBtn.classList.add("opacity-70", "cursor-not-allowed");
+
+    try {
+      const formData = new FormData(form);
+
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: formData,
+        headers: { "Accept": "application/json" }
+      });
+
+      if (response.ok) {
+        form.reset();
+        showModal(
+          "Message Sent",
+          "Your message was submitted successfully. Our team will get back to you soon.",
+          "success",
+          ticketId
+        );
+      } else {
+        showModal(
+          "Submission Failed",
+          "We could not submit your message. Please try again or contact support by email.",
+          "error"
+        );
+      }
+    } catch (err) {
+      showModal(
+        "Network Error",
+        "A network error occurred. Please check your connection and try again.",
+        "error"
+      );
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
+    }
+  });
+</script>
 {% endblock %}
