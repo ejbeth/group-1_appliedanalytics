@@ -1,8 +1,17 @@
 from flask import Flask, render_template, redirect, url_for, session, flash, request
 import os
+from openpyxl import load_workbook
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'amefa-portal-secret-key-2024'  # Change this for production
+
+EXCEL_PATH = os.path.join(os.path.dirname(__file__), "amefa_order_portal_demo_db_final_en.xlsx")
+print("EXCEL_PATH =", EXCEL_PATH)
+print("EXCEL_EXISTS =", os.path.exists(EXCEL_PATH))
+
+SHEET_ORDERS = "Orders"                                # your sheet name
+SHEET_CUSTOMERS = "Customers"  # optional (only if you want per-customer filtering)
 
 # Debug: Show template structure
 print("=" * 50)
@@ -44,13 +53,187 @@ def logout():
     flash('You have been logged out successfully.', 'info')
     return redirect(url_for('login'))
 
+def normalize(s):
+    return (str(s).strip().lower() if s is not None else "")
+
+def parse_eur(value):
+    if value is None:
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    s = str(value).strip()
+    s = s.replace("€", "").replace("EUR", "").replace(" ", "")
+    s = s.replace(".", "").replace(",", ".")
+
+    try:
+        return float(s)
+    except Exception:
+        return 0.0
+
+def resolve_customer_id_from_username(username: str):
+    """
+    Map session username -> CustomerID using Customers sheet.
+    Tries matching against: CustomerID, CustomerName, Email (case-insensitive).
+    Returns customer_id or None.
+    """
+    if not username:
+        return None
+
+    u = normalize(username)
+
+    wb = load_workbook(EXCEL_PATH, data_only=True)
+    ws = wb[SHEET_CUSTOMERS]
+
+    # header map
+    headers = {}
+    for col in range(1, ws.max_column + 1):
+        name = ws.cell(row=1, column=col).value
+        if name:
+            headers[normalize(name)] = col
+
+    def col(name):
+        return headers.get(normalize(name))
+
+    c_id = col("CustomerID")
+    c_name = col("CustomerName")
+    c_email = col("Email")
+
+    customer_id = None
+    for r in range(2, ws.max_row + 1):
+        cid = ws.cell(r, c_id).value if c_id else None
+        cname = ws.cell(r, c_name).value if c_name else None
+        cemail = ws.cell(r, c_email).value if c_email else None
+
+        if u in (normalize(cid), normalize(cname), normalize(cemail)):
+            customer_id = str(cid)
+            break
+
+    wb.close()
+    return customer_id
+
 # Dashboard route
+def load_metrics_from_excel(customer_id=None):
+    wb = load_workbook(EXCEL_PATH, data_only=True)
+    ws = wb[SHEET_ORDERS]
+
+    # build header map (row 1)
+    headers = {}
+    for col in range(1, ws.max_column + 1):
+        name = ws.cell(row=1, column=col).value
+        if name:
+            headers[str(name).strip().lower()] = col
+
+    def col(name):
+        return headers.get(name.lower())
+
+    c_order_id = col("orderid")
+    c_date = col("orderdate")
+    c_customer = col("customerid")
+    c_status = col("status")
+    c_total = col("total")
+    c_delivery = col("expecteddelivery")
+
+    orders = []
+    for r in range(2, ws.max_row + 1):
+        oid = ws.cell(r, c_order_id).value if c_order_id else None
+        if not oid:
+            continue
+
+        cust = ws.cell(r, c_customer).value if c_customer else None
+        if customer_id and normalize(cust) != normalize(customer_id):
+            continue
+
+        date_val = ws.cell(r, c_date).value if c_date else None
+        status = ws.cell(r, c_status).value if c_status else "Unknown"
+        total_val = ws.cell(r, c_total).value if c_total else 0
+        deliv_val = ws.cell(r, c_delivery).value if c_delivery else None
+
+        # normalize money
+        total_num = parse_eur(total_val)
+
+        # normalize date
+        if isinstance(date_val, datetime):
+            date_str = date_val.strftime("%Y-%m-%d")
+        else:
+            date_str = str(date_val) if date_val else ""
+
+        orders.append({
+            "order_id": str(oid).replace("#", ""),
+            "date_raw": date_val,
+            "date": date_str,
+            "status": str(status),
+            "total_value": total_num,
+            "total": f"€ {total_num:,.2f}",
+            "delivery_raw": deliv_val,
+        })
+
+    # metrics
+    today = datetime.today()
+    last_30 = today - timedelta(days=30)
+    last_90 = today - timedelta(days=90)
+
+    def to_dt(v):
+        if isinstance(v, datetime):
+            return v
+        return None
+
+    orders_30d = 0
+    spent_90d = 0.0
+    status_counts = {}
+    open_orders = 0
+    next_delivery = None
+
+    for o in orders:
+        dt = to_dt(o["date_raw"])
+        if dt and dt >= last_30:
+            orders_30d += 1
+        if dt and dt >= last_90:
+            spent_90d += o["total_value"]
+
+        status_counts[o["status"]] = status_counts.get(o["status"], 0) + 1
+        if o["status"] in ("Processing", "Pending"):
+            open_orders += 1
+
+        ddt = to_dt(o["delivery_raw"])
+        if ddt and (next_delivery is None or ddt < next_delivery):
+            next_delivery = ddt
+
+    recent_orders = sorted(
+        orders,
+        key=lambda x: (to_dt(x["date_raw"]) or datetime.min),
+        reverse=True
+    )[:3]
+
+    metrics = {
+        "orders_30d": orders_30d,
+        "orders_30d_delta": None,
+        "open_orders": open_orders,
+        "spent_90d": f"€ {spent_90d:,.2f}",
+        "next_delivery": next_delivery.strftime("%b %d") if next_delivery else "—",
+        "status_counts": status_counts,
+        "recent_orders": recent_orders,
+    }
+
+    wb.close()
+    return metrics
+    
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
         flash('Please login to access the dashboard.', 'error')
         return redirect(url_for('login'))
-    return render_template('pages/dashboard.html', username=session.get('username'))
+
+    username = session.get('username')
+    customer_id = resolve_customer_id_from_username(username)
+
+    metrics = load_metrics_from_excel(customer_id=customer_id)
+
+    return render_template(
+        'pages/dashboard.html',
+        username=session.get('username'),
+        metrics=metrics
+    )
 
 # Products route
 @app.route('/products')
