@@ -402,6 +402,30 @@
       });
 
       if (response.ok) {
+
+        // Save ticket in the local Excel database (Flask)
+        const orderNumber = (document.querySelector('input[name="order_number"]')?.value || "").trim();
+
+        try {
+          const saveResp = await fetch("/support/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ticket_id: ticketId,
+              order_id: orderNumber,
+              email_tracking: ticketId
+            })
+          });
+
+          const saveJson = await saveResp.json().catch(() => ({}));
+
+          if (!saveResp.ok || !saveJson.ok) {
+            console.warn("Ticket save failed:", saveJson);
+          }
+        } catch (err) {
+          console.warn("Ticket save network error:", err);
+        }
+
         form.reset();
         showModal(
           "Message Sent",
@@ -409,6 +433,7 @@
           "success",
           ticketId
         );
+
       } else {
         showModal(
           "Submission Failed",
@@ -427,5 +452,5 @@
       submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
     }
   });
-</script>
+  </script>
 {% endblock %}

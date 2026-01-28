@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, session, flash, request
+from flask import Flask, render_template, redirect, url_for, session, flash, request, jsonify
 import os
 from openpyxl import load_workbook
 from datetime import datetime, timedelta
@@ -7,11 +7,27 @@ app = Flask(__name__)
 app.secret_key = 'amefa-portal-secret-key-2024'  # Change this for production
 
 EXCEL_PATH = os.path.join(os.path.dirname(__file__), "amefa_order_portal_demo_db_final_en.xlsx")
-print("EXCEL_PATH =", EXCEL_PATH)
-print("EXCEL_EXISTS =", os.path.exists(EXCEL_PATH))
 
 SHEET_ORDERS = "Orders"                                # your sheet name
 SHEET_CUSTOMERS = "Customers"  # optional (only if you want per-customer filtering)
+SHEET_SUPPORT = "Support"
+
+# Ensure that the Support worksheet exists in the Excel database.
+# If the sheet does not exist, it is created with the required header structure.
+# This helper guarantees a consistent schema before writing support ticket data.
+def ensure_support_sheet(wb):
+    if SHEET_SUPPORT not in wb.sheetnames:
+        ws = wb.create_sheet(SHEET_SUPPORT)
+        ws.append([
+            "TicketID",
+            "CustomerID",
+            "OrderID",
+            "EmailTracking",
+            "CreatedAt",
+            "Status"
+        ])
+        return ws
+    return wb[SHEET_SUPPORT]
 
 # Debug: Show template structure
 print("=" * 50)
@@ -38,6 +54,7 @@ def login():
         if username and password:  # Basic validation
             session['user_id'] = 1  # Set a dummy user ID
             session['username'] = username
+            session['customer_id'] = resolve_customer_id_from_username(username)
             flash('Login successful! Welcome to Amefa Order Portal.', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -214,9 +231,102 @@ def load_metrics_from_excel(customer_id=None):
         "status_counts": status_counts,
         "recent_orders": recent_orders,
     }
+    # --- Support tickets (latest 5) ---
+    support_tickets = []
+    if SHEET_SUPPORT in wb.sheetnames:
+        ws_sup = wb[SHEET_SUPPORT]
+
+        for row in ws_sup.iter_rows(min_row=2, values_only=True):
+            if not row or not row[0]:
+                continue
+
+            # Columns: TicketID, CustomerID, OrderID, EmailTracking, CreatedAt, Status
+            t_customer = row[1]
+
+            # Filter by logged-in customer
+            if customer_id and normalize(t_customer) != normalize(customer_id):
+                continue
+
+            support_tickets.append({
+                "ticket_id": row[0],
+                "customer_id": row[1],
+                "order_id": row[2],
+                "email_tracking": row[3],
+                "created_at": row[4],
+                "status": row[5],
+            })
+
+        # Sort by CreatedAt (string "YYYY-MM-DD HH:MM:SS") and take latest 5
+        support_tickets = sorted(
+            support_tickets,
+            key=lambda x: x.get("created_at") or "",
+            reverse=True
+        )[:5]
+
+    metrics["recent_tickets"] = support_tickets
+    metrics["open_tickets"] = sum(1 for t in support_tickets if (t.get("status") or "").lower() == "open")
 
     wb.close()
     return metrics
+
+def load_orders_from_excel(customer_id=None):
+    """
+    Load all orders from the Excel database.
+    If customer_id is provided, filter results to the logged-in customer.
+    Returns a list of order dictionaries for the Orders page.
+    """
+    wb = load_workbook(EXCEL_PATH, data_only=True)
+    ws = wb[SHEET_ORDERS]
+
+    # Build a header -> column index map from the first row
+    headers = {}
+    for c in range(1, ws.max_column + 1):
+        name = ws.cell(row=1, column=c).value
+        if name:
+            headers[str(name).strip().lower()] = c
+
+    def col(name):
+        return headers.get(name.lower())
+
+    c_order_id = col("orderid")
+    c_date = col("orderdate")
+    c_customer = col("customerid")
+    c_status = col("status")
+    c_total = col("total")
+
+    orders = []
+
+    # Read all rows and optionally filter by customer_id
+    for r in range(2, ws.max_row + 1):
+        oid = ws.cell(r, c_order_id).value if c_order_id else None
+        if not oid:
+            continue
+
+        cust = ws.cell(r, c_customer).value if c_customer else None
+        if customer_id and normalize(cust) != normalize(customer_id):
+            continue
+
+        date_val = ws.cell(r, c_date).value if c_date else None
+        status_val = ws.cell(r, c_status).value if c_status else "Unknown"
+        total_val = ws.cell(r, c_total).value if c_total else 0
+
+        # Normalize values for UI rendering
+        total_num = parse_eur(total_val)
+        date_str = date_val.strftime("%Y-%m-%d") if isinstance(date_val, datetime) else ""
+
+        orders.append({
+            "order_id": str(oid).replace("#", ""),
+            "date": date_str,
+            "status": str(status_val),
+            "total_value": total_num,
+            "total": f"€ {total_num:,.2f}",
+        })
+
+    # Sort newest first
+    orders = sorted(orders, key=lambda x: x.get("date") or "", reverse=True)
+
+    wb.close()
+    return orders
     
 @app.route('/dashboard')
 def dashboard():
@@ -249,7 +359,17 @@ def orders():
     if 'user_id' not in session:
         flash('Please login to view orders.', 'error')
         return redirect(url_for('login'))
-    return render_template('pages/order_view.html')
+
+    # Get customer linked to the current session
+    customer_id = session.get("customer_id")
+
+    # Load all orders for this customer
+    orders = load_orders_from_excel(customer_id=customer_id)
+
+    return render_template(
+        'pages/order_view.html',
+        orders=orders
+    )
 
 # Reports route
 @app.route('/reports')
@@ -266,6 +386,40 @@ def support():
         flash('Please login to access support.', 'error')
         return redirect(url_for('login'))
     return render_template('pages/support.html')
+
+# Create a support ticket and store it in the Excel database
+@app.route("/support/create", methods=["POST"])
+def support_create():
+    # Read JSON payload from request
+    data = request.get_json(silent=True) or {}
+
+    # Extract required fields
+    ticket_id = (data.get("ticket_id") or "").strip()
+    order_id = (data.get("order_id") or "").strip()
+    email_tracking = (data.get("email_tracking") or "").strip()
+
+    # Get customer from session (if logged in)
+    customer_id = session.get("customer_id")
+
+    # Set metadata
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    status = "Open"
+
+    # Basic validation
+    if not ticket_id:
+        return jsonify({"ok": False, "error": "Missing ticket_id"}), 400
+    if not email_tracking:
+        return jsonify({"ok": False, "error": "Missing email_tracking"}), 400
+
+    # Write ticket to Excel
+    wb = load_workbook(EXCEL_PATH)
+    ws = ensure_support_sheet(wb)
+    ws.append([ticket_id, customer_id, order_id, email_tracking, created_at, status])
+    wb.save(EXCEL_PATH)
+    wb.close()
+
+    # Return success response
+    return jsonify({"ok": True})
 
 # Add a test route to verify CSS is working
 @app.route('/test-css')

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "layout/base.html" %}
 
 {% block title %}Orders - Amefa Order Portal{% endblock %}
 
@@ -9,47 +9,81 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h1 style="color: #003366; margin: 0;">My Orders</h1>
             <div>
-                <a href="{{ url_for('customer_login') }}" style="margin-right: 1rem; color: #005b9f;">Login</a>
+                <a href="{{ url_for('login') }}" style="margin-right: 1rem; color: #005b9f;">Login</a>
                 <a href="{{ url_for('products') }}" style="margin-right: 1rem; color: #005b9f;">Products</a>
-                <a href="{{ url_for('order_view') }}" style="margin-right: 1rem; color: #005b9f; font-weight: bold;">Orders</a>
-                <a href="{{ url_for('report_view') }}" style="margin-right: 1rem; color: #005b9f;">Reports</a>
-                <a href="{{ url_for('contact') }}" style="color: #005b9f;">Contact</a>
+                <a href="{{ url_for('orders') }}" style="margin-right: 1rem; color: #005b9f; font-weight: bold;">Orders</a>
+                <a href="{{ url_for('reports') }}" style="margin-right: 1rem; color: #005b9f;">Reports</a>
+                <a href="{{ url_for('support') }}" style="color: #005b9f;">Support</a>
             </div>
         </div>
     </div>
     
     <!-- Orders List -->
     <div style="background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead style="background: #003366; color: white;">
-                <tr>
-                    <th style="padding: 1rem; text-align: left;">Order #</th>
-                    <th style="padding: 1rem; text-align: left;">Date</th>
-                    <th style="padding: 1rem; text-align: left;">Total</th>
-                    <th style="padding: 1rem; text-align: left;">Status</th>
-                    <th style="padding: 1rem; text-align: left;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for i in range(3) %}
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 1rem;">AME-2024-00{{ 100+i }}</td>
-                    <td style="padding: 1rem;">2024-01-{{ 15+i }}</td>
-                    <td style="padding: 1rem;">€{{ (i+1)*150 }}</td>
-                    <td style="padding: 1rem;">
-                        <span style="padding: 0.25rem 0.75rem; border-radius: 20px; background: #d4edda; color: #155724;">
-                            {% if i == 0 %}Processing{% elif i == 1 %}Shipped{% else %}Delivered{% endif %}
-                        </span>
-                    </td>
-                    <td style="padding: 1rem;">
-                        <button style="padding: 0.25rem 0.75rem; background: #003366; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                            View
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+
+     {# Orders table (data comes from Flask: render_template(..., orders=orders)) #}
+    <table style="width: 100%; border-collapse: collapse;">
+
+    {# Table header #}
+    <thead style="background: #003366; color: white;">
+      <tr>
+        <th style="padding: 1rem; text-align: left;">Order #</th>
+        <th style="padding: 1rem; text-align: left;">Date</th>
+        <th style="padding: 1rem; text-align: left;">Total</th>
+        <th style="padding: 1rem; text-align: left;">Status</th>
+        <th style="padding: 1rem; text-align: left;">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      {# If there are orders for this customer, render them #}
+      {% if orders and orders|length > 0 %}
+
+        {# Loop through all orders passed from Flask #}
+        {% for o in orders %}
+        <tr style="border-bottom: 1px solid #eee;">
+
+          {# Order ID #}
+          <td style="padding: 1rem;">#{{ o.order_id }}</td>
+
+          {# Order date (already formatted in backend) #}
+          <td style="padding: 1rem;">{{ o.date or "—" }}</td>
+
+          {# Total (already formatted in backend, e.g., "€ 1,234.00") #}
+          <td style="padding: 1rem;">{{ o.total }}</td>
+
+          {# Status (simple display; you can style later like dashboard) #}
+          <td style="padding: 1rem;">
+            <span style="padding: 0.25rem 0.75rem; border-radius: 20px; background: #eef2ff; color: #1e40af;">
+              {{ o.status }}
+            </span>
+          </td>
+
+          {# Action placeholder (demo) #}
+          <td style="padding: 1rem;">
+            <button
+              type="button"
+              style="padding: 0.25rem 0.75rem; background: #003366; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              View
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+
+      {# Empty state (no orders found) #}
+      {% else %}
+        <tr>
+          <td colspan="5" style="padding: 1rem; text-align:center; color:#666;">
+            No orders found for this customer.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
 </div>
+
+<!-- Close the main page wrapper (padding container) -->
+</div>
+
 {% endblock %}
