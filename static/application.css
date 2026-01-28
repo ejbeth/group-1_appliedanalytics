@@ -1,0 +1,19 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 40px;
+}
+
+.card {
+  border: 1px solid #ddd;
+  padding: 16px;
+  border-radius: 10px;
+  max-width: 420px;
+}
+
+.error {
+  color: #b00020;
+}
+
+.ok {
+  color: #0a7a0a;
+}
