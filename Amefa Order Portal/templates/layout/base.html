@@ -36,12 +36,12 @@
             {% endif %}
         {% endwith %}
         
-        <div class="min-h-full">
+        <div class="min-h-screen flex flex-col">
             <!-- Navigation -->
             {% include 'layout/nav.html' %}
             
             <!-- Main Content -->
-            <main class=""min-h-full">
+            <main class="flex-1 w-full pt-6">
             
                 {% block content %}{% endblock %}
             </main>
