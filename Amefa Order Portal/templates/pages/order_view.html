@@ -17,7 +17,50 @@
             </div>
         </div>
     </div>
-    
+    <!-- Search & Filters (single order lookup) -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6 mb-6">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">Search & Filters</h2>
+      <p class="mt-1 text-sm text-gray-500">Search an order and show one result line here.</p>
+    </div>
+    <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+      UI only
+    </span>
+  </div>
+
+  <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-12 sm:items-center">
+    <div class="sm:col-span-6">
+      <input
+        id="orderSearchInput"
+        type="text"
+        placeholder="Search by order # (e.g., A-10291 or 10291)..."
+        class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+
+    <div class="sm:col-span-6 flex gap-3 sm:justify-end">
+      <button
+        id="orderSearchBtn"
+        type="button"
+        class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        Search
+      </button>
+
+      <button
+        id="orderClearBtn"
+        type="button"
+        class="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <div id="orderSearchResult" class="mt-5 hidden"></div>
+</div>
+
     <!-- Orders List -->
     <div style="background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
 
@@ -42,7 +85,7 @@
 
         {# Loop through all orders passed from Flask #}
         {% for o in orders %}
-        <tr style="border-bottom: 1px solid #eee;">
+        <tr data-order-id="{{ o.order_id }}" style="border-bottom: 1px solid #eee;">
 
           {# Order ID #}
           <td style="padding: 1rem;">#{{ o.order_id }}</td>
@@ -85,5 +128,179 @@
 
 <!-- Close the main page wrapper (padding container) -->
 </div>
+<script>
+  // ================================
+  // Helper functions
+  // ================================
+
+  // Normalizes the Order ID so different formats still match.
+  // Examples:
+  // "#A-10291 "  -> "a-10291"
+  // "10291"      -> "10291"
+  function normalizeId(v) {
+    return (v || "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace("#", "")
+      .replace(/\s+/g, "");
+  }
+
+  // ================================
+  // Render functions (HTML output)
+  // ================================
+
+  // Renders ONE order result inside the search card
+  function renderResultRow({ orderId, date, total, status }) {
+    return `
+      <div class="rounded-xl border border-gray-200 overflow-hidden">
+        <div class="bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-900">
+          Match found
+        </div>
+
+        <div class="px-4 py-3">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-12 sm:items-center text-sm">
+
+            <div class="sm:col-span-3">
+              <div class="text-xs text-gray-500">Order</div>
+              <div class="font-semibold text-gray-900">#${orderId || "—"}</div>
+            </div>
+
+            <div class="sm:col-span-3">
+              <div class="text-xs text-gray-500">Date</div>
+              <div class="text-gray-900">${date || "—"}</div>
+            </div>
+
+            <div class="sm:col-span-3">
+              <div class="text-xs text-gray-500">Total</div>
+              <div class="text-gray-900">${total || "—"}</div>
+            </div>
+
+            <div class="sm:col-span-3">
+              <div class="text-xs text-gray-500">Status</div>
+              <div class="text-gray-900">${status || "—"}</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Renders a "not found" message when no order matches
+  function renderNotFound(query) {
+    return `
+      <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        No order found for: <span class="font-semibold">${query}</span>
+      </div>
+    `;
+  }
+
+  // ================================
+  // DOM references
+  // ================================
+
+  // Search input field
+  const input = document.getElementById("orderSearchInput");
+
+  // Search button
+  const btn = document.getElementById("orderSearchBtn");
+
+  // Reset button
+  const clear = document.getElementById("orderClearBtn");
+
+  // Container where the result will be displayed
+  const result = document.getElementById("orderSearchResult");
+
+  // ================================
+  // Main search logic
+  // ================================
+
+  function doSearch() {
+    // Raw value typed by the user
+    const raw = input.value || "";
+
+    // Normalized value used for comparison
+    const q = normalizeId(raw);
+
+    // If input is empty, clear the result area
+    if (!q) {
+      result.classList.add("hidden");
+      result.innerHTML = "";
+      return;
+    }
+
+    // Find all table rows that have an Order ID attached
+    const rows = document.querySelectorAll("tr[data-order-id]");
+    let match = null;
+
+    // Loop through rows and try to find a matching Order ID
+    for (const r of rows) {
+      const rid = normalizeId(r.getAttribute("data-order-id"));
+
+      // Allows:
+      // - exact match: "a-10291" === "a-10291"
+      // - partial match: "10291" matches "a-10291"
+      if (rid === q || rid.endsWith(q)) {
+        match = r;
+        break;
+      }
+    }
+
+    // Show result container
+    result.classList.remove("hidden");
+
+    // If no order was found, show error message
+    if (!match) {
+      result.innerHTML = renderNotFound(raw.trim());
+      return;
+    }
+
+    // Extract data from table columns
+    // Table structure:
+    // [0] Order #
+    // [1] Date
+    // [2] Total
+    // [3] Status
+    // [4] Actions
+    const cells = match.querySelectorAll("td");
+
+    const orderId = match.getAttribute("data-order-id") || "";
+    const date = cells?.[1]?.innerText?.trim() || "";
+    const total = cells?.[2]?.innerText?.trim() || "";
+    const status = cells?.[3]?.innerText?.trim() || "";
+
+    // Render the matched order inside the card
+    result.innerHTML = renderResultRow({
+      orderId,
+      date,
+      total,
+      status
+    });
+
+    // Scroll smoothly to the result
+    result.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // ================================
+  // Event bindings
+  // ================================
+
+  // Click on Search button
+  btn.addEventListener("click", doSearch);
+
+  // Press Enter inside the input
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doSearch();
+  });
+
+  // Click on Reset button
+  clear.addEventListener("click", () => {
+    input.value = "";
+    result.classList.add("hidden");
+    result.innerHTML = "";
+    input.focus();
+  });
+</script>
 
 {% endblock %}
