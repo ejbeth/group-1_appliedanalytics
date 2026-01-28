@@ -25,341 +25,337 @@
           <i class="fas fa-clipboard-list mr-2 text-gray-700"></i>
           Orders
         </a>
+
         <a href="{{ url_for('products') }}"
            class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
           <i class="fas fa-boxes mr-2 text-gray-700"></i>
           Products
         </a>
+
+        <a href="{{ url_for('reports') }}"
+           class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
+          <i class="fas fa-chart-line mr-2 text-gray-700"></i>
+          Reports
+        </a>
+
         <a href="{{ url_for('support') }}"
-           class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm text-white">
-          <i class="fas fa-headset mr-2"></i>
+           class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
+          <i class="fas fa-headset mr-2 text-gray-700"></i>
           Support
+        </a>
+
+        <a href="{{ url_for('logout') }}"
+           class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
+          <i class="fas fa-right-from-bracket mr-2 text-gray-700"></i>
+          Logout
         </a>
       </div>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Search + KPIs + Status Summary (layout like screenshot) -->
+    <div class="grid grid-cols-12 gap-6 mb-8">
 
-      <!-- Orders (30d) -->
-      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center">
-            <div class="p-3 rounded-lg bg-blue-50">
-              <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
-            </div>
-            <div class="ml-4">
-              <p class="text-gray-500 text-sm">Orders (30d)</p>
-              <p class="text-2xl font-bold text-gray-900">{{ metrics.orders_30d }}</p>
-            </div>
+      <!-- Search (FULL WIDTH, top) -->
+      <div class="col-span-12">
+        <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-gray-900">Search & Filters</h2>
+            <span class="text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200">UI only</span>
           </div>
 
-          {% set d = metrics.orders_30d_delta %}
-          {% if d is not none %}
-            {% if d >= 0 %}
-              <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
-                +{{ d }}%
-              </span>
-            {% else %}
-              <span class="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-100">
-                {{ d }}%
-              </span>
-            {% endif %}
-          {% else %}
-            <span class="text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200">
-              —
-            </span>
-          {% endif %}
-        </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="Search by order #, customer..."
+            />
 
-        <div class="mt-3 h-2 rounded-full bg-gray-100 overflow-hidden">
-          <!-- purely visual -->
-          <div class="h-2 bg-blue-500 w-2/3"></div>
-        </div>
-        <p class="text-gray-500 text-xs mt-2">Volume trend (Excel-based)</p>
-      </div>
+            <select class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900">
+              <option>Status: All</option>
+              <option>Processing</option>
+              <option>Pending</option>
+              <option>Shipped</option>
+              <option>Delivered</option>
+            </select>
 
-      <!-- Open Orders -->
-      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center">
-            <div class="p-3 rounded-lg bg-yellow-50">
-              <i class="fas fa-clock text-yellow-600 text-xl"></i>
-            </div>
-            <div class="ml-4">
-              <p class="text-gray-500 text-sm">Open Orders</p>
-              <p class="text-2xl font-bold text-gray-900">{{ metrics.open_orders }}</p>
-            </div>
+            <select class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900">
+              <option>Period: Last 30 days</option>
+              <option>Last 7 days</option>
+              <option>Last 90 days</option>
+              <option>This year</option>
+            </select>
           </div>
-          <span class="text-xs px-2 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-100">
-            Action
-          </span>
-        </div>
-        <p class="text-gray-500 text-xs mt-3">Processing + pending</p>
-      </div>
 
-      <!-- Spent (90d) -->
-      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center">
-            <div class="p-3 rounded-lg bg-green-50">
-              <i class="fas fa-euro-sign text-green-700 text-xl"></i>
-            </div>
-            <div class="ml-4">
-              <p class="text-gray-500 text-sm">Spent (90d)</p>
-              <p class="text-2xl font-bold text-gray-900">{{ metrics.spent_90d }}</p>
-            </div>
+          <div class="mt-4 flex gap-2">
+            <button type="button"
+              onclick="alert('UI only')"
+              class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm">
+              Apply
+            </button>
+            <button type="button"
+              onclick="alert('UI only')"
+              class="px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm">
+              Reset
+            </button>
           </div>
-          <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-            Stable
-          </span>
-        </div>
-        <p class="text-gray-500 text-xs mt-3">Net total (Excel-based)</p>
-      </div>
-
-      <!-- Next Delivery -->
-      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center">
-            <div class="p-3 rounded-lg bg-purple-50">
-              <i class="fas fa-truck text-purple-700 text-xl"></i>
-            </div>
-            <div class="ml-4">
-              <p class="text-gray-500 text-sm">Next Delivery</p>
-              <p class="text-2xl font-bold text-gray-900">{{ metrics.next_delivery }}</p>
-            </div>
-          </div>
-          <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
-            On time
-          </span>
-        </div>
-        <p class="text-gray-500 text-xs mt-3">Based on expected delivery</p>
-      </div>
-
-    </div>
-
-    <!-- Search + Summary -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-      <!-- Search (UI only) -->
-      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm lg:col-span-2">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-900">Search & Filters</h2>
-          <span class="text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200">UI only</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input
-            class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="Search by order #, customer..."
-          />
-
-          <select class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900">
-            <option>Status: All</option>
-            <option>Processing</option>
-            <option>Pending</option>
-            <option>Shipped</option>
-            <option>Delivered</option>
-          </select>
-
-          <select class="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900">
-            <option>Period: Last 30 days</option>
-            <option>Last 7 days</option>
-            <option>Last 90 days</option>
-            <option>This year</option>
-          </select>
-        </div>
-
-        <div class="mt-4 flex gap-2">
-          <button type="button"
-            onclick="alert('UI only')"
-            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm">
-            Apply
-          </button>
-          <button type="button"
-            onclick="alert('UI only')"
-            class="px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-900 shadow-sm">
-            Reset
-          </button>
         </div>
       </div>
 
-      <!-- Summary -->
-      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Status Summary</h2>
+      <!-- LEFT: KPI GRID (2x2) -->
+      <div class="col-span-12 lg:col-span-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <div class="space-y-3 text-sm">
-          {% if metrics.status_counts and metrics.status_counts|length > 0 %}
-            {% for status, count in metrics.status_counts.items() %}
-              <div class="flex justify-between text-gray-700">
-                <span>{{ status }}</span>
-                <span class="font-semibold text-gray-900">{{ count }}</span>
+          <!-- KPI #1 (top-left): Spent (90d) -->
+          <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center">
+                <div class="p-3 rounded-lg bg-green-50">
+                  <i class="fas fa-euro-sign text-green-700 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xl font-bold text-gray-500">Spent (90d)</h2>
+                  <p class="text-2xl font-bold text-gray-900">{{ metrics.spent_90d }}</p>
+                </div>
               </div>
-            {% endfor %}
-          {% else %}
-            <div class="text-gray-600 text-sm">
-              No orders found for this customer yet.
+              <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                Stable
+              </span>
             </div>
-          {% endif %}
-
-          <div class="pt-3 border-t border-gray-200">
-            <p class="text-gray-500 text-xs">Recommended next step</p>
-            <p class="text-gray-900 font-semibold">Review open orders</p>
+            <p class="text-gray-500 text-xs mt-3">Net total (Excel-based)</p>
           </div>
-        </div>
-      </div>
 
-    </div>
+          <!-- KPI #2 (top-right): Next Delivery -->
+          <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center">
+                <div class="p-3 rounded-lg bg-purple-50">
+                  <i class="fas fa-truck text-purple-700 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xl font-bold text-gray-500">Next Delivery</h2>
+                  <p class="text-2xl font-bold text-gray-900">{{ metrics.next_delivery }}</p>
+                </div>
+              </div>
+              <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+                On time
+              </span>
+            </div>
+            <p class="text-gray-500 text-xs mt-3">Based on expected delivery</p>
+          </div>
 
-   <!-- Recent Orders section -->
-<div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm mb-8">
+          <!-- KPI #3 (bottom-left): Orders (30d) -->
+          <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center">
+                <div class="p-3 rounded-lg bg-blue-50">
+                  <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xl font-bold text-gray-500">Orders (30d)</h2>
+                  <p class="text-2xl font-bold text-gray-900">{{ metrics.orders_30d }}</p>
+                </div>
+              </div>
 
-  <!-- Section header with link to full orders page -->
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-xl font-bold text-gray-900">Recent Orders</h2>
-    <a href="{{ url_for('orders') }}"
-       class="text-blue-700 hover:text-blue-800 text-sm font-medium">
-      See all →
-    </a>
-  </div>
-
-  <!-- Orders table -->
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-
-      <!-- Table header -->
-      <thead>
-        <tr class="text-gray-500 border-b border-gray-200">
-          <th class="text-left py-2">Order</th>
-          <th class="text-left py-2">Date</th>
-          <th class="text-left py-2">Status</th>
-          <th class="text-right py-2">Total</th>
-        </tr>
-      </thead>
-
-      <!-- Table body -->
-      <tbody class="text-gray-800">
-        {% if metrics.recent_orders and metrics.recent_orders|length > 0 %}
-          {% for o in metrics.recent_orders %}
-
-            <!-- Single order row -->
-            <tr class="border-b border-gray-100 hover:bg-gray-50">
-              <td class="py-2 font-semibold text-gray-900">
-                #{{ o.order_id }}
-              </td>
-              <td class="py-2">{{ o.date }}</td>
-
-              <!-- Order status with visual badge -->
-              <td class="py-2">
-                {% if o.status == "Processing" %}
-                  <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                    Processing
-                  </span>
-                {% elif o.status == "Delivered" %}
-                  <span class="px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
-                    Delivered
-                  </span>
-                {% elif o.status == "Pending" %}
-                  <span class="px-2 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-100">
-                    Pending
-                  </span>
-                {% elif o.status == "Shipped" %}
-                  <span class="px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
-                    Shipped
+              {% set d = metrics.orders_30d_delta %}
+              {% if d is not none %}
+                {% if d >= 0 %}
+                  <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+                    +{{ d }}%
                   </span>
                 {% else %}
-                  <span class="px-2 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200">
-                    {{ o.status }}
+                  <span class="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-100">
+                    {{ d }}%
                   </span>
                 {% endif %}
-              </td>
+              {% else %}
+                <span class="text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200">
+                  —
+                </span>
+              {% endif %}
+            </div>
 
-              <!-- Order total -->
-              <td class="py-2 text-right">{{ o.total }}</td>
+            <div class="mt-3 h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div class="h-2 bg-blue-500 w-2/3"></div>
+            </div>
+            <p class="text-gray-500 text-xs mt-2">Volume trend (Excel-based)</p>
+          </div>
+
+          <!-- KPI #4 (bottom-right): Open Orders -->
+          <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center">
+                <div class="p-3 rounded-lg bg-yellow-50">
+                  <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xl font-bold text-gray-600 mb4">Open Orders</h2>
+                  <p class="text-2xl font-bold text-gray-900">{{ metrics.open_orders }}</p>
+                </div>
+              </div>
+              <span class="text-xs px-2 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-100">
+                Action
+              </span>
+            </div>
+            <p class="text-gray-500 text-xs mt-5">Processing + pending</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: Status Summary (tall card) -->
+      <div class="col-span-12 lg:col-span-4">
+        <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm h-full">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Status Summary</h2>
+
+          <div class="space-y-3 text-sm">
+            {% if metrics.status_counts and metrics.status_counts|length > 0 %}
+              {% for status, count in metrics.status_counts.items() %}
+                <div class="flex justify-between text-gray-700">
+                  <span>{{ status }}</span>
+                  <span class="font-semibold text-gray-900">{{ count }}</span>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-gray-600 text-sm">
+                No orders found for this customer yet.
+              </div>
+            {% endif %}
+
+            <div class="pt-3 border-t border-gray-200">
+              <p class="text-gray-500 text-xs">Recommended next step</p>
+              <p class="text-gray-900 font-semibold">Review open orders</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent Orders section -->
+    <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm mb-8">
+
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-900">Recent Orders</h2>
+        <a href="{{ url_for('orders') }}"
+           class="text-blue-700 hover:text-blue-800 text-sm font-medium">
+          See all →
+        </a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-gray-500 border-b border-gray-200">
+              <th class="text-left py-2">Order</th>
+              <th class="text-left py-2">Date</th>
+              <th class="text-left py-2">Status</th>
+              <th class="text-right py-2">Total</th>
             </tr>
-          {% endfor %}
+          </thead>
 
-        <!-- Empty state -->
-        {% else %}
-          <tr>
-            <td colspan="4" class="py-6 text-center text-gray-600">
-              No recent orders available.
-            </td>
-          </tr>
-        {% endif %}
-      </tbody>
-
-    </table>
-  </div>
-</div>
+          <tbody class="text-gray-800">
+            {% if metrics.recent_orders and metrics.recent_orders|length > 0 %}
+              {% for o in metrics.recent_orders %}
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="py-2 font-semibold text-gray-900">
+                    #{{ o.order_id }}
+                  </td>
+                  <td class="py-2">{{ o.date }}</td>
+                  <td class="py-2">
+                    {% if o.status == "Processing" %}
+                      <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                        Processing
+                      </span>
+                    {% elif o.status == "Delivered" %}
+                      <span class="px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+                        Delivered
+                      </span>
+                    {% elif o.status == "Pending" %}
+                      <span class="px-2 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-100">
+                        Pending
+                      </span>
+                    {% elif o.status == "Shipped" %}
+                      <span class="px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                        Shipped
+                      </span>
+                    {% else %}
+                      <span class="px-2 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200">
+                        {{ o.status }}
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="py-2 text-right">{{ o.total }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" class="py-6 text-center text-gray-600">
+                  No recent orders available.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- Recent Support Tickets section -->
-<div class="mt-8 rounded-xl bg-white border border-gray-200 shadow-sm p-6">
+    <div class="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
 
-  <!-- Header: title and open tickets counter -->
-  <div class="flex items-start justify-between">
-    <div>
-      <h2 class="text-xl font-bold text-gray-900">Recent Support Tickets</h2>
-      <p class="text-gray-600 mt-1">
-        Latest tickets registered from the Support page.
-      </p>
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Recent Support Tickets</h2>
+          <p class="text-gray-600 mt-1">
+            Latest tickets registered from the Support page.
+          </p>
+        </div>
+
+        <div class="text-sm font-semibold text-gray-900">
+          Open: {{ metrics.open_tickets }}
+        </div>
+      </div>
+
+      <div class="mt-4 overflow-hidden rounded-lg border border-gray-200">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left">Ticket</th>
+              <th class="px-3 py-2 text-left">Order</th>
+              <th class="px-3 py-2 text-left">Created</th>
+              <th class="px-3 py-2 text-left">Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for t in metrics.recent_tickets %}
+            <tr class="border-t">
+              <td class="px-3 py-2 font-medium text-gray-900">
+                {{ t.ticket_id }}
+              </td>
+              <td class="px-3 py-2">
+                {{ t.order_id or "—" }}
+              </td>
+              <td class="px-3 py-2">
+                {{ t.created_at }}
+              </td>
+              <td class="px-3 py-2">
+                {{ t.status }}
+              </td>
+            </tr>
+            {% else %}
+            <tr class="border-t">
+              <td class="px-3 py-2 text-gray-600" colspan="4">
+                No tickets yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
     </div>
-
-    <!-- Number of open tickets (for the logged-in customer) -->
-    <div class="text-sm font-semibold text-gray-900">
-      Open: {{ metrics.open_tickets }}
-    </div>
-  </div>
-
-  <!-- Tickets table -->
-  <div class="mt-4 overflow-hidden rounded-lg border border-gray-200">
-    <table class="w-full text-sm">
-
-      <!-- Table header -->
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-3 py-2 text-left">Ticket</th>
-          <th class="px-3 py-2 text-left">Order</th>
-          <th class="px-3 py-2 text-left">Created</th>
-          <th class="px-3 py-2 text-left">Status</th>
-        </tr>
-      </thead>
-
-      <!-- Table body -->
-      <tbody>
-        {% for t in metrics.recent_tickets %}
-        <tr class="border-t">
-          <td class="px-3 py-2 font-medium text-gray-900">
-            {{ t.ticket_id }}
-          </td>
-          <td class="px-3 py-2">
-            {{ t.order_id or "—" }}
-          </td>
-          <td class="px-3 py-2">
-            {{ t.created_at }}
-          </td>
-          <td class="px-3 py-2">
-            {{ t.status }}
-          </td>
-        </tr>
-
-        <!-- Empty state -->
-        {% else %}
-        <tr class="border-t">
-          <td class="px-3 py-2 text-gray-600" colspan="4">
-            No tickets yet.
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-
-    </table>
-  </div>
-</div>
-
 
     <!-- Demo Notice -->
-    <div class="p-6 rounded-xl bg-blue-50 border border-blue-100 shadow-sm">
+    <div class="p-6 rounded-xl bg-blue-50 border border-blue-100 shadow-sm mt-8">
       <div class="flex items-start">
         <i class="fas fa-info-circle text-blue-600 text-xl mt-1 mr-3"></i>
         <div>

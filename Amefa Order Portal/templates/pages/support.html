@@ -23,12 +23,6 @@
           Back to Dashboard
         </a>
 
-        <a href="{{ url_for('orders') }}"
-           class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
-          <i class="fas fa-clipboard-list mr-2 text-gray-700"></i>
-          Orders
-        </a>
-
         <a href="{{ url_for('logout') }}"
            class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
           <i class="fas fa-right-from-bracket mr-2 text-gray-700"></i>
@@ -91,14 +85,7 @@
             <i class="fas fa-paper-plane mr-2"></i>
             Send Message
           </button>
-
-          <button type="button"
-                  onclick="showModal('Ticket Creation', 'Ticket creation is not connected in this demo. Please use the message form.', 'info')"
-                  class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm text-gray-900">
-            <i class="fas fa-ticket mr-2 text-gray-700"></i>
-            Create Ticket
-          </button>
-        </div>
+         </div>
       </div>
 
       <!-- Quick Help -->
@@ -121,7 +108,7 @@
               Check on your Dashboard your last Orders.
             </p>
             <div class="mt-3">
-              <a href="{{ url_for('login') }}" class="text-blue-700 hover:text-blue-800 text-sm font-medium">
+              <a href="{{ url_for('dashboard') }}" class="text-blue-700 hover:text-blue-800 text-sm font-medium">
                 Go to Dashboard →
               </a>
             </div>
