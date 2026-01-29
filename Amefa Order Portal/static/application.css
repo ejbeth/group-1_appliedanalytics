@@ -660,3 +660,17 @@ h1 {
     transform: none !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
 }
+/* === FOOTER FIX: invisible headings === */
+.footer h3 {
+    color: #374151 !important;   /* gray-700 */
+    opacity: 1 !important;
+}
+
+.footer p,
+.footer a {
+    color: #4b5563;              /* gray-600 */
+}
+
+.footer a:hover {
+    color: #1f2937;              /* gray-800 */
+}
