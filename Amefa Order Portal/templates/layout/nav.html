@@ -1,20 +1,20 @@
-<nav class="bg-gray-800/90">
+<nav class="bg-gray-800/90">               <!-- Navigation bar or contrainer, with semi-transparent dark background -->
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
 
-      <div class="flex items-center">
+      <div class="flex items-center">                <!-- Left section of the navba, logo & navigation links-->
         <div class="shrink-0">
           <img
-            src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
+            src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"   
             alt="Amefa"
             class="h-8 w-8"
           />
         </div>
 
-        <div class="hidden md:block">
+        <div class="hidden md:block">           <!-- Navigation links, hidden on small screens line on Mobile -->
           <div class="ml-10 flex items-baseline space-x-2">
-
-            <a href="{{ url_for('dashboard') }}"
+                                                  <!-- Dynamic Dashboard link, highlights if on dashboard page -->
+            <a href="{{ url_for('dashboard') }}"  
                class="rounded-md px-3 py-2 text-sm font-medium {% if request.endpoint == 'dashboard' %}bg-gray-950/60 text-white{% else %}text-gray-300 hover:bg-white/10 hover:text-white{% endif %}">
               Dashboard
             </a>
@@ -48,7 +48,7 @@
           {{ username or 'User' }}
         </span>
 
-        <a href="{{ url_for('logout') }}"
+        <a href="{{ url_for('logout') }}"   
            class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white">
           Sign out
         </a>
