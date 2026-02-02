@@ -1,26 +1,301 @@
-{% extends "layout/base.html" %}
+{% extends "layout/base.html" %}   <!-- Extends the base layout template, and automatically include navigation, footer, and CSS -->
 
-{% block title %}Login - Amefa{% endblock %}
+{% block title %}Login / Register - Amefa Order Portal{% endblock %}    <!-- Sets the page title nin browser tab -->
 
-{% block content %}
-<div class="login-container">
-    <h1>Amefa Order Portal</h1>
-    <form method="POST" action="{{ url_for('login') }}" class="login-form">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+{% block head %}        <!-- Additional head content specific to this page -->
+<style>
+    .login-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }                               
     
-    <p class="register-link">
-        Don't have an account? <a href="#">Contact administrator</a>
-    </p>
+    .register-card {
+        background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #334155;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .input-field {
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        transition: all 0.3s ease;
+    }
+    
+    .input-field:focus {
+        background-color: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .input-field-dark {
+        background-color: #1e293b;
+        border: 1px solid #475569;
+        color: #f1f5f9;
+        transition: all 0.3s ease;
+    }
+    
+    .input-field-dark:focus {
+        background-color: #0f172a;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .form-label {
+        color: #475569;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .form-label-dark {
+        color: #cbd5e1;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+</style>                
+{% endblock %}
+
+{% block content %}     <!-- Main content of the customer login and register page -->
+<div class="min-h-[calc(100vh-200px)] flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div class="w-full max-w-6xl">
+        <!-- Page Header - and two columns layout -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-900 to-blue-800 text-white rounded-full mb-4 shadow-lg">
+                <i class="fas fa-user-lock text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Customer Login & Registration</h1>
+            <p class="text-gray-600">Access your account or create a new one</p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Left Panel: Login -->
+            <div class="login-card rounded-xl p-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <span>Existing Customer?</span>
+                    </h2>
+                    <p class="text-gray-600 text-sm">Sign in to access your dashboard and orders</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('login') }}" class="space-y-6">
+                    <!-- Email -->
+                    <div>
+                        <label for="login-email" class="form-label block mb-2">
+                            <i class="fas fa-envelope mr-2 text-blue-600"></i>Email Address
+                        </label>
+                        <input type="email" 
+                               id="login-email" 
+                               name="username" 
+                               required
+                               class="input-field w-full px-4 py-3 rounded-lg focus:outline-none"
+                               placeholder="you@example.com">
+                    </div>
+                    
+                    <!-- Password -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="login-password" class="form-label block">
+                                <i class="fas fa-lock mr-2 text-blue-600"></i>Password
+                            </label>
+                            <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition duration-300">
+                                Forgot password?
+                            </a>
+                        </div>
+                        <input type="password" 
+                               id="login-password" 
+                               name="password" 
+                               required
+                               class="input-field w-full px-4 py-3 rounded-lg focus:outline-none"
+                               placeholder="Enter your password">
+                    </div>
+                    
+                    <!-- Remember Me -->
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="remember-me" 
+                               name="remember"
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                            Keep me signed in
+                        </label>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 transform hover:-translate-y-0.5 shadow-md hover:shadow-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login
+                    </button>
+                    
+                    <!-- Demo Notice -->
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                        <p class="text-xs text-blue-700">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Demo Mode:</strong> For testing, enter any email and password
+                        </p>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Right Panel: Registration -->
+            <div class="register-card rounded-xl p-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-white mb-2 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <span>Create an Account?</span>
+                    </h2>
+                    <p class="text-blue-200 text-sm">Join thousands of businesses using Amefa Portal</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('register') }}" id="register-form" class="space-y-6">
+                    <!-- Full Name -->
+                    <div>
+                        <label for="register-name" class="form-label-dark block mb-2">
+                            <i class="fas fa-user mr-2 text-blue-400"></i>Full Name
+                        </label>
+                        <input type="text" 
+                               id="register-name" 
+                               name="full_name" 
+                               required
+                               class="input-field-dark w-full px-4 py-3 rounded-lg focus:outline-none"
+                               placeholder="John Doe">
+                    </div>
+                    
+                    <!-- Email -->
+                    <div>
+                        <label for="register-email" class="form-label-dark block mb-2">
+                            <i class="fas fa-envelope mr-2 text-blue-400"></i>Email Address
+                        </label>
+                        <input type="email" 
+                               id="register-email" 
+                               name="email" 
+                               required
+                               class="input-field-dark w-full px-4 py-3 rounded-lg focus:outline-none"
+                               placeholder="you@company.com">
+                    </div>
+                    
+                    <!-- Password -->
+                    <div>
+                        <label for="register-password" class="form-label-dark block mb-2">
+                            <i class="fas fa-lock mr-2 text-blue-400"></i>Password
+                        </label>
+                        <input type="password" 
+                               id="register-password" 
+                               name="password" 
+                               required
+                               class="input-field-dark w-full px-4 py-3 rounded-lg focus:outline-none"
+                               placeholder="Create a password">
+                        <p class="mt-2 text-xs text-blue-300">
+                            Must be at least 8 characters with letters and numbers
+                        </p>
+                    </div>
+                    
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="register-confirm" class="form-label-dark block mb-2">
+                            <i class="fas fa-lock mr-2 text-blue-400"></i>Confirm Password
+                        </label>
+                        <input type="password" 
+                               id="register-confirm" 
+                               name="confirm_password" 
+                               required
+                               class="input-field-dark w-full px-4 py-3 rounded-lg focus:outline-none"
+                               placeholder="Re-enter your password">
+                    </div>
+                    
+                    <!-- Terms -->
+                    <div class="flex items-start">
+                        <input type="checkbox" 
+                               id="accept-terms" 
+                               name="accept_terms"
+                               required
+                               class="h-4 w-4 text-blue-400 focus:ring-blue-500 border-blue-600 rounded mt-1 bg-blue-900">
+                        <label for="accept-terms" class="ml-2 block text-sm text-blue-200">
+                            I agree to the 
+                            <a href="#" class="text-blue-400 hover:text-white font-medium">Terms of Service</a> 
+                            and 
+                            <a href="#" class="text-blue-400 hover:text-white font-medium">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 transform hover:-translate-y-0.5 shadow-md hover:shadow-lg">
+                        <i class="fas fa-user-plus mr-2"></i>Register
+                    </button>
+                </form>
+                
+                <!-- Divider -->
+                <div class="flex items-center my-8">
+                    <div class="flex-grow border-t border-blue-700"></div>
+                    <span class="mx-4 text-blue-300 text-sm">OR CONTINUE WITH</span>
+                    <div class="flex-grow border-t border-blue-700"></div>
+                </div>
+                
+                <!-- Social Login -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" 
+                            class="bg-blue-900 hover:bg-blue-800 border border-blue-700 text-white py-2.5 px-4 rounded-lg font-medium transition duration-300 flex items-center justify-center text-sm">
+                        <i class="fab fa-google mr-2 text-red-400"></i>
+                        Google
+                    </button>
+                    <button type="button" 
+                            class="bg-blue-900 hover:bg-blue-800 border border-blue-700 text-white py-2.5 px-4 rounded-lg font-medium transition duration-300 flex items-center justify-center text-sm">
+                        <i class="fab fa-microsoft mr-2 text-blue-400"></i>
+                        Microsoft
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Footer Text -->
+        <div class="mt-12 text-center">
+            <div class="inline-block bg-white px-6 py-3 rounded-lg shadow-sm">
+                <p class="text-gray-600 text-sm">
+                    <i class="fas fa-shield-alt mr-2 text-blue-600"></i>
+                    Privacy Policy and Registration Portal
+                </p>
+                <p class="text-gray-800 font-medium mt-1">Amefa - Online Order Portal</p>
+                <p class="text-xs text-gray-500 mt-2">Enterprise-grade security • 99.9% Uptime • 24/7 Support</p>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Password validation
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+        const password = document.getElementById('register-password').value;
+        const confirm = document.getElementById('register-confirm').value;
+        
+        if (password !== confirm) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+        
+        if (password.length < 8) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters long!');
+            return false;
+        }
+        
+        // Check for at least one letter and one number
+        const hasLetter = /[a-zA-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        
+        if (!hasLetter || !hasNumber) {
+            e.preventDefault();
+            alert('Password must contain both letters and numbers!');
+            return false;
+        }
+    });
+</script>
 {% endblock %}
