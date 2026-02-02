@@ -63,6 +63,91 @@ def login():
     # Render the login page
     return render_template('pages/cust_login_reg.html')
 
+# ============================================================================
+# From BETH - REGISTRATION ROUTE - ADDED HERE
+# ============================================================================
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        # Get form data
+        full_name = request.form.get('full_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Basic validation
+        if not all([full_name, email, password, confirm_password]):
+            flash('Please fill all required fields', 'error')
+            return render_template('pages/cust_login_reg.html')
+        
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('pages/cust_login_reg.html')
+        
+        # Load workbook
+        wb = load_workbook(EXCEL_PATH)
+        
+        # Ensure Customers sheet exists
+        if SHEET_CUSTOMERS not in wb.sheetnames:
+            ws = wb.create_sheet(SHEET_CUSTOMERS)
+            ws.append(["CustomerID", "CustomerName", "Email", "Password", "CreatedAt"])
+            print(f"📄 Created new Customers sheet")
+        else:
+            ws = wb[SHEET_CUSTOMERS]
+            print(f"📄 Using existing Customers sheet")
+        
+        # Check if email already exists
+        email_exists = False
+        existing_customer_id = None
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if row and len(row) > 2 and row[2] and str(row[2]).strip().lower() == email.lower():
+                email_exists = True
+                existing_customer_id = row[0]
+                break
+        
+        if email_exists:
+            flash(f'Email already registered (CustomerID: {existing_customer_id}). Please login instead.', 'error')
+            wb.close()
+            return render_template('pages/cust_login_reg.html')
+        
+        # Generate new CustomerID
+        max_id = 0
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if row and row[0]:
+                try:
+                    id_str = str(row[0])
+                    if id_str.startswith('C'):
+                        current_id = int(id_str[1:])
+                    else:
+                        current_id = int(id_str)
+                    max_id = max(max_id, current_id)
+                except (ValueError, TypeError):
+                    continue
+        
+        new_id = f"C{max_id + 1:04d}"
+        print(f"🆕 Generated new CustomerID: {new_id}")
+        
+        # Add new customer
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ws.append([new_id, full_name, email, password, created_at])
+        
+        # Save workbook
+        wb.save(EXCEL_PATH)
+        wb.close()
+        
+        print(f"✅ Registered new customer: {full_name} ({email}) as {new_id}")
+        
+        # Auto-login after registration
+        session['user_id'] = new_id
+        session['username'] = full_name
+        session['customer_id'] = new_id
+        
+        flash(f'Account created successfully! Welcome {full_name}', 'success')
+        return redirect(url_for('dashboard'))
+    
+    # GET request - show registration form
+    return render_template('pages/cust_login_reg.html')
+
 # Logout route
 @app.route('/logout')
 def logout():
@@ -129,7 +214,7 @@ def resolve_customer_id_from_username(username: str):
     wb.close()
     return customer_id
 
-# Dashboard route
+# Dashboard route - RENATO
 def load_metrics_from_excel(customer_id=None):
     wb = load_workbook(EXCEL_PATH, data_only=True)
     ws = wb[SHEET_ORDERS]
@@ -345,7 +430,7 @@ def dashboard():
         metrics=metrics
     )
 
-# Products route
+# Products route              - LILIANNE
 @app.route('/products')
 def products():
     if 'user_id' not in session:
@@ -353,7 +438,7 @@ def products():
         return redirect(url_for('login'))
     return render_template('pages/products.html')
 
-# Orders route
+# Orders route      - AHMAD
 @app.route('/orders')
 def orders():
     if 'user_id' not in session:
@@ -371,7 +456,7 @@ def orders():
         orders=orders
     )
 
-# Reports route
+# Reports route - AHMAD
 @app.route('/reports')
 def reports():
     if 'user_id' not in session:
@@ -379,7 +464,7 @@ def reports():
         return redirect(url_for('login'))
     return render_template('pages/report.html')
 
-# Support route
+# Support route - RENATO
 @app.route('/support')
 def support():
     if 'user_id' not in session:
@@ -446,6 +531,7 @@ if __name__ == '__main__':
     print("• /reports - Reports & analytics")
     print("• /support - Support center")
     print("• /logout - Logout")
+    print("• /register - Registration (NEW!)")  # Added this line
     print("=" * 50 + "\n")
     
     app.run(debug=True, port=5000)
