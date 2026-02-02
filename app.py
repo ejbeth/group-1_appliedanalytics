@@ -18,3 +18,5 @@ def login():
         return render_template("success.html", username=username)
 
     return render_template("login.html", error="Invalid credentials")
+if __name__ == "__main__":
+    app.run(debug=True)
