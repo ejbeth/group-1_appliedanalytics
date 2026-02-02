@@ -1,15 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login Successful</title>
-</head>
-<body>
-    <h2>Login successful ✅</h2>
+{% extends "layout/base.html" %}
 
-    <p>Welcome, <strong>{{ username }}</strong>!</p>
+{% block title %}Login Successful{% endblock %}
 
-    <p>
-        <a href="/">Back to home</a>
-    </p>
-</body>
-</html>
+{% block content %}
+  <h2>Login successful ✅</h2>
+  <p>Welcome, <strong>{{ username }}</strong>!</p>
+{% endblock %}
