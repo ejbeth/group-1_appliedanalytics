@@ -1,8 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, session, flash, request, jsonify
+from flask import Flask, render_template, redirect, url_for, session, flash, request, jsonify, Response
 import os
 from openpyxl import load_workbook
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
+import csv
+from io import StringIO
 
 app = Flask(__name__)
 app.secret_key = 'amefa-portal-secret-key-2024'  # Change this for production
@@ -464,7 +466,32 @@ def build_reports_metrics(orders):
     spend_months = sorted(spend_per_month.keys())
     spend_totals = [round(spend_per_month[m], 2) for m in spend_months]
 
+    # Month-over-month comparison
+    order_change_pct = None
+    spend_change_pct = None
+
+    if len(months_sorted) >= 2:
+        last = months_sorted[-1]
+        prev = months_sorted[-2]
+
+        last_orders = month_counts.get(last, 0)
+        prev_orders = month_counts.get(prev, 0)
+
+        last_spend = spend_per_month.get(last, 0.0)
+        prev_spend = spend_per_month.get(prev, 0.0)
+
+        if prev_orders > 0:
+            order_change_pct = round(
+                ((last_orders - prev_orders) / prev_orders) * 100, 1
+            )
+
+        if prev_spend > 0:
+            spend_change_pct = round(
+                ((last_spend - prev_spend) / prev_spend) * 100, 1
+            )
+
     return {
+
         "total_orders": total_orders,
         "approved": approved,
         "pending": pending,
@@ -482,6 +509,10 @@ def build_reports_metrics(orders):
         # extra chart data (safe to add)
         "spend_dates": spend_months,
         "spend_totals": spend_totals,
+        "latest_month": months_sorted[-1] if len(months_sorted) >= 1 else None,
+        "previous_month": months_sorted[-2] if len(months_sorted) >= 2 else None,
+        "order_change_pct": order_change_pct,
+        "spend_change_pct": spend_change_pct,
     }
     
 @app.route('/dashboard')
@@ -536,13 +567,107 @@ def reports():
 
     customer_id = session.get("customer_id")
 
-    # Reuse existing Orders loader (already filters by customer)
+    # Read filters from URL (?start=YYYY-MM&end=YYYY-MM)
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    # Load orders
     orders = load_orders_from_excel(customer_id=customer_id)
 
-    # Build metrics for the report page
+    # Filter orders by month (if selected)
+    if start or end:
+        filtered = []
+
+        for o in orders:
+            d = o.get("date") or ""
+            if len(d) >= 7:
+                month = d[:7]  # YYYY-MM
+
+                if start and month < start:
+                    continue
+                if end and month > end:
+                    continue
+
+                filtered.append(o)
+
+        orders = filtered
+
+    # Build metrics
     metrics = build_reports_metrics(orders)
 
-    return render_template('pages/report.html', metrics=metrics)
+    # Get all available months (for dropdowns)
+    months = sorted({
+        (o.get("date") or "")[:7]
+        for o in load_orders_from_excel(customer_id=customer_id)
+        if len((o.get("date") or "")) >= 7
+    })
+
+    # Add filter info to metrics
+    metrics["available_months"] = months
+    metrics["selected_start"] = start
+    metrics["selected_end"] = end
+
+    return render_template("pages/report.html", metrics=metrics)
+
+@app.route("/reports/export")
+def reports_export():
+    if 'user_id' not in session:
+        flash('Please login to view reports.', 'error')
+        return redirect(url_for('login'))
+
+    customer_id = session.get("customer_id")
+
+    # Read filters
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    # Load orders
+    orders = load_orders_from_excel(customer_id=customer_id)
+
+    # Apply same month filter
+    if start or end:
+        filtered = []
+
+        for o in orders:
+            d = o.get("date") or ""
+            if len(d) >= 7:
+                month = d[:7]
+
+                if start and month < start:
+                    continue
+                if end and month > end:
+                    continue
+
+                filtered.append(o)
+
+        orders = filtered
+
+    # Build CSV
+    output = StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["OrderID", "OrderDate", "Status", "Total"])
+
+    for o in orders:
+        writer.writerow([
+            o.get("order_id"),
+            o.get("date"),
+            o.get("status"),
+            o.get("total")
+        ])
+
+    csv_data = output.getvalue()
+    output.close()
+
+    filename = "orders_report.csv"
+
+    return app.response_class(
+        csv_data,
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
 
 # Support route - RENATO
 @app.route('/support')
