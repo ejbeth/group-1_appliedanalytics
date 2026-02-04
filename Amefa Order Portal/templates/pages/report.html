@@ -1,10 +1,148 @@
-{% extends 'layout/base.html' %}
+{% extends "layout/base.html" %}
 
-{% block title %}Reports{% endblock %}
+{% block title %}Reports - Amefa Order Portal{% endblock %}
 
 {% block content %}
-<div class="page">
-  <h1>Reports</h1>
-  <p>Report summaries and charts will be shown here.</p>
+<div class="bg-gray-100 min-h-screen w-full">
+  <div class="mx-auto max-w-7xl px-4 pt-4 pb-10 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+      <p class="text-gray-600 mt-2">
+        Order performance, status distribution, and trends over time.
+      </p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
+
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Total Orders</p>
+        <p class="text-2xl font-bold text-gray-900">{{ metrics.total_orders }}</p>
+      </div>
+
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Approved</p>
+        <p class="text-2xl font-bold text-green-700">{{ metrics.approved }}</p>
+      </div>
+
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Pending</p>
+        <p class="text-2xl font-bold text-yellow-600">{{ metrics.pending }}</p>
+      </div>
+
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Rejected</p>
+        <p class="text-2xl font-bold text-red-600">{{ metrics.rejected }}</p>
+      </div>
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Total Spend</p>
+        <p class="text-2xl font-bold text-gray-900">{{ metrics.total_spend }}</p>
+      </div>
+
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Avg Order Value</p>
+        <p class="text-2xl font-bold text-gray-900">{{ metrics.avg_order_value }}</p>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+      <!-- Bar Chart -->
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Orders by Status</h2>
+        <canvas id="statusChart" height="120"></canvas>
+      </div>
+
+      <!-- Pie Chart -->
+      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Status Distribution</h2>
+        <canvas id="pieChart" height="120"></canvas>
+      </div>
+
+    </div>
+
+    <!-- Orders Over Time -->
+    <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+      <h2 class="text-lg font-bold text-gray-900 mb-4">Orders Over Time</h2>
+      <canvas id="lineChart" height="100"></canvas>
+      <!-- Spend Over Time -->
+<div class="mt-6 p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
+  <h2 class="text-lg font-bold text-gray-900 mb-4">Spend Over Time</h2>
+  <canvas id="spendChart" height="100"></canvas>
 </div>
+    </div>
+
+
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const statusData = {{ metrics.status_counts | tojson }};
+  const dates = {{ metrics.dates | tojson }};
+  const totals = {{ metrics.totals | tojson }};
+  const spendDates = {{ metrics.spend_dates | tojson }};
+  const spendTotals = {{ metrics.spend_totals | tojson }};
+
+  new Chart(document.getElementById("spendChart"), {
+    type: "line",
+    data: {
+      labels: spendDates,
+      datasets: [{
+        label: "Spend (€)",
+        data: spendTotals,
+        borderColor: "#16a34a",
+        backgroundColor: "rgba(22, 163, 74, 0.2)",
+        tension: 0.3,
+        fill: true
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("statusChart"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(statusData),
+      datasets: [{
+        label: "Orders",
+        data: Object.values(statusData),
+        backgroundColor: "#3b82f6"
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+      labels: Object.keys(statusData),
+      datasets: [{
+        data: Object.values(statusData),
+        backgroundColor: ["#22c55e", "#facc15", "#ef4444", "#3b82f6"]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("lineChart"), {
+    type: "line",
+    data: {
+      labels: dates,
+      datasets: [{
+        label: "Orders",
+        data: totals,
+        borderColor: "#2563eb",
+        backgroundColor: "rgba(37, 99, 235, 0.2)",
+        tension: 0.3,
+        fill: true
+      }]
+    }
+  });
+</script>
 {% endblock %}
