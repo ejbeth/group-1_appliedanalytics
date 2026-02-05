@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 import csv
 from io import StringIO
+import pandas as pd
+import os
 
 app = Flask(__name__)
 app.secret_key = 'amefa-portal-secret-key-2024'  # Change this for production
@@ -538,12 +540,26 @@ def dashboard():
     )
 
 # Products route              - LILIANNE
+def load_products_from_excel():
+    path = os.path.join(os.path.dirname(__file__), "product_list.xlsx")
+ 
+    if not os.path.exists(path):
+        print("❌ product_list.xlsx not found:", path)
+        return []
+ 
+    df = pd.read_excel(path)
+    df = df.fillna("")
+    return df.to_dict(orient="records")
+ 
+ 
 @app.route('/products')
 def products():
     if 'user_id' not in session:
         flash('Please login to view products.', 'error')
         return redirect(url_for('login'))
-    return render_template('pages/products.html')
+ 
+    product_list = load_products_from_excel()
+    return render_template("pages/products.html", products=product_list)
 
 # Orders route      - AHMAD
 @app.route('/orders')

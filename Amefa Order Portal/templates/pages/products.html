@@ -1,49 +1,78 @@
 {% extends "layout/base.html" %}
-
-{% block title %}Products - Amefa Order Portal{% endblock %}
-
+ 
+{% block title %}Products{% endblock %}
+ 
 {% block content %}
-<div class="bg-gray-100 min-h-screen w-full">
-  <div class="mx-auto max-w-7xl px-4 pt-4 pb-8 sm:px-6 lg:px-8">
-
-    <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900">Products</h1>
-      <p class="text-gray-600 mt-2">
-        Browse Amefa products available for ordering.
-      </p>
-    </div>
-
-    <!-- Products Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for i in range(6) %}
-      <div class="p-6 rounded-xl bg-white border border-gray-200 shadow-sm">
-        <div class="flex items-center justify-between">
-          <div class="text-4xl">🍴</div>
-          <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
-            In stock
-          </span>
-        </div>
-
-        <div class="mt-4">
-          <h3 class="text-lg font-bold text-gray-900">Product {{ i+1 }}</h3>
-          <p class="text-gray-600 mt-2 text-sm">
-            Premium quality cutlery set for professional use. Made in Germany with stainless steel.
-          </p>
-        </div>
-
-        <div class="mt-4 flex items-center justify-between">
-          <div class="text-xl font-bold text-gray-900">€{{ (i+1)*50 }}</div>
-
-          <button type="button"
-            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm">
-            Add to Cart
-          </button>
+ 
+<div style="padding: 1cm;">
+ 
+  <h1>Products</h1>
+  <p>Browse Amefa products available for ordering.</p>
+ 
+  <hr>
+ 
+  {% if products|length == 0 %}
+    <p>No products found in Excel file.</p>
+  {% else %}
+ 
+    {% for product in products %}
+      <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 10px; background: white;">
+ 
+        <div style="display: flex; gap: 15px; align-items: flex-start;">
+ 
+          <div style="width: 140px;">
+            {% if product["ImageURL"] %}
+              <img src="{{ product['ImageURL'] }}"
+                   alt="Product image"
+                   style="width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 1px solid #eee;">
+            {% else %}
+              <div style="width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; background: #f3f3f3; border-radius: 10px;">
+                No image
+              </div>
+            {% endif %}
+          </div>
+ 
+          <div style="flex: 1;">
+            <h3 style="margin-top: 0;"><b>{{ product["Name"] }}</b></h3>
+ 
+            <p><b>SKU:</b> {{ product["SKU"] }}</p>
+            <p><b>Description:</b> {{ product["Description"] }}</p>
+ 
+            <p><b>Unit price:</b> {{ product["price pc"] }}</p>
+            <p><b>Price (12 pcs):</b> {{ product["price 12 pcs."] }}</p>
+ 
+            <div>
+              <label style="font-weight: bold;">Anzahl</label><br>
+              <input type="number" name="quantity" value="1" min="1"
+                    style="width: 90px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            </div>
+ 
+            <button
+              type="submit"
+              style="
+                margin-top: 15px;
+                background: #00aeef;
+                color: white;
+                border: none;
+                padding: 10px 18px;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 14px;
+              "
+              onmouseover="this.style.background='#0099d6'"
+              onmouseout="this.style.background='#00aeef'"
+            >
+              ADD TO CART
+            </button>
+          </div>
+ 
         </div>
       </div>
-      {% endfor %}
-    </div>
-
-  </div>
+    {% endfor %}
+ 
+  {% endif %}
+ 
 </div>
+ 
 {% endblock %}
