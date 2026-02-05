@@ -46,6 +46,11 @@ def home():
     # Redirect to login page
     return redirect(url_for('login'))
 
+# Terms & Conditions page
+@app.route('/terms')
+def terms():
+    return render_template('pages/terms.html')
+
 # Login route (using your cust_login_reg.html template)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
